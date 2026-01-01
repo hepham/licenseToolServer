@@ -166,8 +166,8 @@ else:
 
 # Production Security Settings
 if not DEBUG:
-    # HTTPS/SSL
-    SECURE_SSL_REDIRECT = True
+    # HTTPS/SSL - Only redirect if SSL is configured
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
     # Cookie Security
