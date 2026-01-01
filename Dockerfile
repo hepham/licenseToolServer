@@ -22,6 +22,9 @@ COPY backend/ .
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Create staticfiles directory
+RUN mkdir -p /app/staticfiles
+
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash appuser
 RUN chown -R appuser:appuser /app
