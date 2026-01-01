@@ -42,7 +42,7 @@ services:
     environment:
       - DEBUG=False
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,hehetool.site}
       - DB_NAME=${DB_NAME:-license_server}
       - DB_USER=${DB_USER:-root}
       - DB_PASSWORD=${DB_PASSWORD:-rootpassword}
