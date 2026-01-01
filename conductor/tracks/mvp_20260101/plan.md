@@ -78,7 +78,7 @@
 - [x] Task 7.4: End-to-end testing
 - [x] Task 7.5: Security review (API, authentication, data storage)
 - [x] Task 7.6: Performance testing
-- [ ] Task 7.7: Create README with setup instructions
+- [x] Task 7.7: Create README with setup instructions
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Final Integration & Deployment' (Protocol in workflow.md)
 
 ---
