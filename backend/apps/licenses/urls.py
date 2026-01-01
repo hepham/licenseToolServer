@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import ActivateView, DeactivateView, ValidateView
+from .views import ActivateView, DeactivateView, ValidateView, HealthCheckView
 from .admin_views import (
     AdminLicenseListCreateView,
     AdminLicenseDetailView,
@@ -9,6 +9,9 @@ from .admin_views import (
 )
 
 urlpatterns = [
+    # Health check
+    path('health/', HealthCheckView.as_view(), name='health'),
+    
     # Public activation endpoints
     path('activate/', ActivateView.as_view(), name='activate'),
     path('deactivate/', DeactivateView.as_view(), name='deactivate'),

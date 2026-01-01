@@ -227,3 +227,21 @@ class ValidateView(APIView):
             'valid': True,
             'message': 'License is valid'
         }, status=status.HTTP_200_OK)
+
+
+class HealthCheckView(APIView):
+    """
+    GET /api/v1/health
+    Simple health check endpoint for load balancers and monitoring.
+    """
+    permission_classes = [AllowAny]
+    throttle_classes = []
+
+    @extend_schema(
+        tags=['Health'],
+        summary='Health check',
+        description='Returns OK if the service is running.',
+        responses={200: OpenApiResponse(description='Service is healthy')}
+    )
+    def get(self, request):
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)

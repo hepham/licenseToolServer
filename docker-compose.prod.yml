@@ -59,7 +59,7 @@ services:
     volumes:
       - static_files:/app/staticfiles
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/schema/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
       interval: 30s
       timeout: 10s
       retries: 3
