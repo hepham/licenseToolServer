@@ -154,6 +154,16 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+# License Response Signing
+# Path to private key for signing license responses
+# Generate with: python manage.py generate_signing_keys
+_signing_key_env = os.getenv('LICENSE_SIGNING_KEY', None)
+if _signing_key_env:
+    LICENSE_SIGNING_KEY = _signing_key_env
+else:
+    _default_key = BASE_DIR / 'keys' / 'private_key.pem'
+    LICENSE_SIGNING_KEY = str(_default_key) if _default_key.exists() else None
+
 # Production Security Settings
 if not DEBUG:
     # HTTPS/SSL

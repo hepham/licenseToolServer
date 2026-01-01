@@ -45,3 +45,7 @@ Thumbs.db
 node_modules/
 dist/
 build/
+
+# Signing keys (NEVER commit private keys!)
+backend/keys/
+*.pem

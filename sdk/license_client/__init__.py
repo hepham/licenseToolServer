@@ -13,6 +13,7 @@ from .exceptions import (
     LicenseRevokedError,
     DeviceNotAuthorizedError,
     NetworkError,
+    SignatureVerificationError,
 )
 
 __version__ = "1.0.0"
@@ -26,4 +27,5 @@ __all__ = [
     "LicenseRevokedError",
     "DeviceNotAuthorizedError",
     "NetworkError",
+    "SignatureVerificationError",
 ]

@@ -11,6 +11,7 @@ from typing import Optional
 from pathlib import Path
 
 from .fingerprint import DeviceFingerprint
+from .signature import SignatureVerifier
 from .exceptions import (
     LicenseError,
     InvalidLicenseError,
@@ -18,6 +19,7 @@ from .exceptions import (
     LicenseRevokedError,
     DeviceNotAuthorizedError,
     NetworkError,
+    SignatureVerificationError,
 )
 
 
@@ -45,6 +47,7 @@ class LicenseClient:
         license_key: Optional[str] = None,
         cache_file: Optional[str] = None,
         timeout: int = 30,
+        public_key: Optional[str] = None,
     ):
         """
         Initialize the license client.
@@ -54,6 +57,8 @@ class LicenseClient:
             license_key: Optional license key to use
             cache_file: Optional path to cache activation data locally
             timeout: Request timeout in seconds
+            public_key: Optional PEM-encoded public key for response signature verification.
+                       If provided, all server responses will be verified.
         """
         self.server_url = server_url.rstrip('/')
         self.license_key = license_key
@@ -62,6 +67,7 @@ class LicenseClient:
         self._fingerprint = DeviceFingerprint()
         self._device_id: Optional[str] = None
         self._is_activated = False
+        self._verifier = SignatureVerifier(public_key)
 
         if self.cache_file and self.cache_file.exists():
             self._load_cache()
@@ -199,7 +205,7 @@ class LicenseClient:
                 "Please activate your license."
             )
 
-    def _request(self, method: str, endpoint: str, data: dict) -> dict:
+    def _request(self, method: str, endpoint: str, data: dict, verify_signature: bool = True) -> dict:
         """Make an HTTP request to the license server."""
         url = f"{self.server_url}{endpoint}"
         
@@ -216,7 +222,12 @@ class LicenseClient:
             )
             
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                return json.loads(response.read().decode('utf-8'))
+                result = json.loads(response.read().decode('utf-8'))
+                
+                if verify_signature and not self._verifier.verify(result):
+                    raise SignatureVerificationError()
+                
+                return result
         
         except urllib.error.HTTPError as e:
             try:
@@ -227,6 +238,9 @@ class LicenseClient:
         
         except urllib.error.URLError as e:
             raise NetworkError(f"Failed to connect: {e.reason}")
+        
+        except SignatureVerificationError:
+            raise
         
         except Exception as e:
             raise NetworkError(f"Request failed: {str(e)}")

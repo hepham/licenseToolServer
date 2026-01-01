@@ -113,6 +113,8 @@ services:
       - "443:443"
     volumes:
       - static_files:/app/staticfiles:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
     depends_on:
       - backend
       - frontend

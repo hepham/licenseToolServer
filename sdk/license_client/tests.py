@@ -3,6 +3,7 @@ Tests for the License Client SDK
 """
 
 import json
+import time
 import pytest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
@@ -17,7 +18,9 @@ from license_client import (
     LicenseRevokedError,
     DeviceNotAuthorizedError,
     NetworkError,
+    SignatureVerificationError,
 )
+from license_client.signature import SignatureVerifier
 
 
 class TestDeviceFingerprint:
@@ -345,3 +348,163 @@ class TestExceptions:
         error = NetworkError()
         assert "connect" in str(error)
         assert error.code == "NETWORK_ERROR"
+
+    def test_signature_verification_error(self):
+        error = SignatureVerificationError()
+        assert "signature" in str(error).lower()
+        assert error.code == "SIGNATURE_INVALID"
+
+
+class TestSignatureVerifier:
+    """Tests for SignatureVerifier class."""
+
+    def test_verifier_disabled_without_key(self):
+        verifier = SignatureVerifier(None)
+        assert verifier.is_enabled is False
+        assert verifier.verify({"any": "data"}) is True
+
+    def test_verifier_enabled_with_key(self):
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.backends import default_backend
+
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+
+        verifier = SignatureVerifier(public_pem)
+        assert verifier.is_enabled is True
+
+    def test_verify_valid_signature(self):
+        from cryptography.hazmat.primitives.asymmetric import rsa, padding
+        from cryptography.hazmat.primitives import serialization, hashes
+        from cryptography.hazmat.backends import default_backend
+        import base64
+
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+
+        data = {"valid": True, "message": "License is valid", "timestamp": int(time.time())}
+        payload = json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        signature = private_key.sign(payload, padding.PKCS1v15(), hashes.SHA256())
+        data["signature"] = base64.b64encode(signature).decode('utf-8')
+
+        verifier = SignatureVerifier(public_pem)
+        assert verifier.verify(data) is True
+
+    def test_verify_invalid_signature(self):
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.backends import default_backend
+
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+
+        data = {
+            "valid": True,
+            "message": "License is valid",
+            "timestamp": int(time.time()),
+            "signature": "invalid-signature"
+        }
+
+        verifier = SignatureVerifier(public_pem)
+        assert verifier.verify(data) is False
+
+    def test_verify_missing_signature(self):
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.backends import default_backend
+
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+
+        data = {"valid": True, "message": "License is valid"}
+
+        verifier = SignatureVerifier(public_pem)
+        assert verifier.verify(data) is False
+
+    def test_verify_expired_timestamp(self):
+        from cryptography.hazmat.primitives.asymmetric import rsa, padding
+        from cryptography.hazmat.primitives import serialization, hashes
+        from cryptography.hazmat.backends import default_backend
+        import base64
+
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+
+        old_timestamp = int(time.time()) - 600
+        data = {"valid": True, "message": "License is valid", "timestamp": old_timestamp}
+        payload = json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        signature = private_key.sign(payload, padding.PKCS1v15(), hashes.SHA256())
+        data["signature"] = base64.b64encode(signature).decode('utf-8')
+
+        verifier = SignatureVerifier(public_pem)
+        assert verifier.verify(data) is False
+
+
+class TestLicenseClientWithSignature:
+    """Tests for LicenseClient with signature verification."""
+
+    @pytest.fixture
+    def key_pair(self):
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.backends import default_backend
+
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+
+        return private_key, public_pem
+
+    def test_client_with_public_key(self, key_pair):
+        _, public_pem = key_pair
+        client = LicenseClient(
+            "https://license.example.com",
+            public_key=public_pem
+        )
+        assert client._verifier.is_enabled is True
+
+    def test_client_without_public_key(self):
+        client = LicenseClient("https://license.example.com")
+        assert client._verifier.is_enabled is False

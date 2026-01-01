@@ -47,3 +47,10 @@ class NetworkError(LicenseError):
 
     def __init__(self, message: str = "Failed to connect to license server"):
         super().__init__(message, code="NETWORK_ERROR")
+
+
+class SignatureVerificationError(LicenseError):
+    """Raised when server response signature verification fails."""
+
+    def __init__(self, message: str = "Server response signature verification failed"):
+        super().__init__(message, code="SIGNATURE_INVALID")

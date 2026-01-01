@@ -13,7 +13,7 @@ from .serializers import (
     ValidationResponseSerializer,
     DeactivationRequestSerializer,
 )
-from .utils import generate_device_id, hash_fingerprint
+from .utils import generate_device_id, hash_fingerprint, sign_response
 
 
 class ActivationThrottle(AnonRateThrottle):
@@ -97,12 +97,12 @@ class ActivateView(APIView):
         license_obj.status = License.Status.ACTIVE
         license_obj.save()
 
-        return Response({
+        return Response(sign_response({
             'success': True,
             'message': 'License activated successfully',
             'license_key': license_key,
             'device_id': device_id
-        }, status=status.HTTP_200_OK)
+        }), status=status.HTTP_200_OK)
 
 
 class DeactivateView(APIView):
@@ -154,10 +154,10 @@ class DeactivateView(APIView):
         license_obj.status = License.Status.INACTIVE
         license_obj.save()
 
-        return Response({
+        return Response(sign_response({
             'success': True,
             'message': 'License deactivated successfully'
-        }, status=status.HTTP_200_OK)
+        }), status=status.HTTP_200_OK)
 
 
 class ValidateView(APIView):
@@ -223,10 +223,10 @@ class ValidateView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        return Response({
+        return Response(sign_response({
             'valid': True,
             'message': 'License is valid'
-        }, status=status.HTTP_200_OK)
+        }), status=status.HTTP_200_OK)
 
 
 class HealthCheckView(APIView):
