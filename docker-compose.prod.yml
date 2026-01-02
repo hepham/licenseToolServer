@@ -109,7 +109,7 @@ services:
     container_name: license_nginx
     restart: unless-stopped
     ports:
-      - "8080:80"   # Cloudflare HTTPS (Flexible mode)
+      - "2082:80"   # Cloudflare HTTPS (Flexible mode)
       - "8081:80"
       - "8443:443"
     volumes:
