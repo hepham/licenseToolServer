@@ -106,7 +106,7 @@ class LicenseClient:
             **self._fingerprint.to_dict(),
         }
 
-        response = self._request("POST", "/api/v1/activate", payload)
+        response = self._request("POST", "/api/v1/activate/", payload)
 
         if response.get("success"):
             self._device_id = response.get("device_id")
