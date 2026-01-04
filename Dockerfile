@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     pkg-config \
     curl \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -25,10 +26,10 @@ RUN chmod +x /entrypoint.sh
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash appuser
 
-# Create staticfiles directory and set permissions
-RUN mkdir -p /app/staticfiles && chown -R appuser:appuser /app
+# Create staticfiles and keys directories and set permissions
+RUN mkdir -p /app/staticfiles /app/keys && chown -R appuser:appuser /app
 
-USER appuser
+# Don't switch to appuser here - entrypoint will handle it after fixing volume permissions
 
 EXPOSE 8000
 
