@@ -66,18 +66,31 @@ class ActivateView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        if license_obj.status == License.Status.ACTIVE:
-            return Response(
-                {'success': False, 'message': 'This license is already activated on another device'},
-                status=status.HTTP_409_CONFLICT
-            )
-
         device_id = generate_device_id(
             data['cpu_id'],
             data['disk_serial'],
             data['motherboard_id'],
             data['mac_address']
         )
+
+        # Check if this device already has this license activated
+        existing_activation = Device.objects.filter(
+            license=license_obj,
+            device_id=device_id
+        ).first()
+        if existing_activation:
+            return Response(sign_response({
+                'success': True,
+                'message': 'License already activated on this device',
+                'license_key': license_key,
+                'device_id': device_id
+            }), status=status.HTTP_200_OK)
+
+        if license_obj.status == License.Status.ACTIVE:
+            return Response(
+                {'success': False, 'message': 'This license is already activated on another device'},
+                status=status.HTTP_409_CONFLICT
+            )
 
         if Device.objects.filter(device_id=device_id).exists():
             return Response(
