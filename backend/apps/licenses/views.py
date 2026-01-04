@@ -92,12 +92,6 @@ class ActivateView(APIView):
                 status=status.HTTP_409_CONFLICT
             )
 
-        if Device.objects.filter(device_id=device_id).exists():
-            return Response(
-                {'success': False, 'message': 'This device already has an active license'},
-                status=status.HTTP_409_CONFLICT
-            )
-
         fingerprint_data = f"{data['cpu_id']}:{data['disk_serial']}:{data['motherboard_id']}"
         
         Device.objects.create(
