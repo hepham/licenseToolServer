@@ -153,16 +153,18 @@ class DeviceFingerprint:
     def _get_fallback(self, prefix: str) -> str:
         """Generate a fallback identifier."""
         self._fallback_count += 1
-        # Use multiple sources for fallback uniqueness
+        # Use stable sources only (no PID which changes every run)
         node = platform.node() or "unknown"
         machine = platform.machine() or "unknown"
-        fallback = f"{prefix}-{node}-{machine}-{os.getpid()}"
+        mac = str(uuid.getnode())
+        fallback_data = f"{prefix}-{node}-{machine}-{mac}"
+        fallback = hashlib.md5(fallback_data.encode()).hexdigest()[:16]
         
         if self._strict:
             raise FingerprintError(f"Could not retrieve {prefix}, fallback: {fallback}")
         
         logger.warning(f"Using fallback for {prefix}: {fallback}")
-        return fallback
+        return f"{prefix}-{fallback}"
 
     def _get_cpu_id(self) -> str:
         """Retrieve the CPU identifier with multiple fallback strategies."""
