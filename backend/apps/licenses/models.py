@@ -59,7 +59,6 @@ class Device(models.Model):
     )
     device_id = models.CharField(
         max_length=64,
-        unique=True,
         db_index=True,
         help_text="Hashed device identifier"
     )
