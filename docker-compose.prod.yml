@@ -58,6 +58,7 @@ services:
         condition: service_healthy
     volumes:
       - static_files:/app/staticfiles
+      - signing_keys:/app/keys
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
       interval: 30s
@@ -131,6 +132,7 @@ volumes:
   mysql_data:
   redis_data:
   static_files:
+  signing_keys:
 
 networks:
   license_network:

@@ -136,7 +136,7 @@ class LicenseClient:
             "device_id": self.device_id,
         }
 
-        response = self._request("POST", "/api/v1/deactivate", payload)
+        response = self._request("POST", "/api/v1/deactivate/", payload)
 
         if response.get("success"):
             self._is_activated = False
@@ -167,7 +167,7 @@ class LicenseClient:
             "device_id": self.device_id,
         }
 
-        response = self._request("POST", "/api/v1/validate", payload)
+        response = self._request("POST", "/api/v1/validate/", payload)
 
         if response.get("valid"):
             self._is_activated = True
