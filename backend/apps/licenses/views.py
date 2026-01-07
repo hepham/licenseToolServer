@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,6 +7,8 @@ from rest_framework.throttling import AnonRateThrottle
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .models import License, Device
+
+logger = logging.getLogger(__name__)
 from .serializers import (
     ActivationRequestSerializer,
     ActivationResponseSerializer,
@@ -42,6 +45,7 @@ class ActivateView(APIView):
         }
     )
     def post(self, request):
+        logger.info(f"[ACTIVATE] Request body: {request.data}")
         serializer = ActivationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
@@ -132,6 +136,7 @@ class DeactivateView(APIView):
         }
     )
     def post(self, request):
+        logger.info(f"[DEACTIVATE] Request body: {request.data}")
         license_key = request.data.get('license_key')
         device_id = request.data.get('device_id')
 
@@ -188,6 +193,7 @@ class ValidateView(APIView):
         }
     )
     def post(self, request):
+        logger.info(f"[VALIDATE] Request body: {request.data}")
         serializer = ValidationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
