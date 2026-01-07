@@ -20,6 +20,8 @@ export const licenseApi = {
   get: (id: number) => api.get<License>(`/admin/licenses/${id}/`),
   create: () => api.post<License>('/admin/licenses/'),
   revoke: (id: number) => api.delete(`/admin/licenses/${id}/revoke/`),
+  delete: (id: number) => api.delete(`/admin/licenses/${id}/`),
+  deleteUnused: () => api.delete<{ deleted_count: number }>('/admin/licenses/unused/'),
 }
 
 export const deviceApi = {

@@ -37,9 +37,6 @@ def generate_device_id(cpu_id: str, disk_serial: str, motherboard_id: str) -> st
     """
     Generate a unique device ID from hardware components.
     Combines all identifiers and hashes them for privacy.
-    
-    Note: mac_address is excluded as it can be unstable (multiple adapters,
-    virtual interfaces, or changes between sessions).
     """
     combined = f"{cpu_id}:{disk_serial}:{motherboard_id}"
     return hash_fingerprint(combined)

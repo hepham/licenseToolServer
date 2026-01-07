@@ -28,10 +28,16 @@ class LicenseCreateSerializer(serializers.ModelSerializer):
 
 class ActivationRequestSerializer(serializers.Serializer):
     license_key = serializers.CharField(max_length=19)
-    cpu_id = serializers.CharField(max_length=255)
-    disk_serial = serializers.CharField(max_length=255)
-    motherboard_id = serializers.CharField(max_length=255)
-    mac_address = serializers.CharField(max_length=17, required=False, default="")
+    cpu_id = serializers.CharField(max_length=255, required=False, default="", allow_blank=True)
+    disk_serial = serializers.CharField(max_length=255, required=False, default="", allow_blank=True)
+    motherboard_id = serializers.CharField(max_length=255, required=False, default="", allow_blank=True)
+    
+    def validate(self, data):
+        hardware_fields = ['cpu_id', 'disk_serial', 'motherboard_id']
+        non_empty_count = sum(1 for f in hardware_fields if data.get(f, "").strip())
+        if non_empty_count == 0:
+            raise serializers.ValidationError("At least one hardware identifier is required")
+        return data
 
 
 class ActivationResponseSerializer(serializers.Serializer):

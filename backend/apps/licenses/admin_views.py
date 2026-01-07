@@ -52,14 +52,27 @@ class AdminLicenseListCreateView(generics.ListCreateAPIView):
         description='Get detailed information about a specific license including its device.',
     ),
 )
-class AdminLicenseDetailView(generics.RetrieveAPIView):
+class AdminLicenseDetailView(generics.RetrieveDestroyAPIView):
     """
     GET /api/v1/admin/licenses/{id} - Get license details
+    DELETE /api/v1/admin/licenses/{id} - Delete a license
     """
     permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = License.objects.all()
     serializer_class = LicenseSerializer
     lookup_field = 'id'
+
+    @extend_schema(
+        tags=['Admin'],
+        summary='Delete a license',
+        description='Permanently delete a license and all associated device activations.',
+        responses={
+            204: OpenApiResponse(description='License deleted successfully'),
+            404: OpenApiResponse(description='License not found'),
+        }
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 
 class AdminLicenseRevokeView(APIView):
@@ -117,3 +130,25 @@ class AdminDeviceDetailSerializer(DeviceSerializer):
 
     class Meta(DeviceSerializer.Meta):
         fields = ['id', 'device_id', 'activated_at', 'license_key']
+
+
+class AdminDeleteUnusedLicensesView(APIView):
+    """
+    DELETE /api/v1/admin/licenses/unused - Delete all unused (inactive) licenses
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    @extend_schema(
+        tags=['Admin'],
+        summary='Delete unused licenses',
+        description='Delete all licenses that have never been activated (status = inactive).',
+        responses={
+            200: OpenApiResponse(description='Unused licenses deleted successfully'),
+        }
+    )
+    def delete(self, request):
+        deleted_count, _ = License.objects.filter(status=License.Status.INACTIVE).delete()
+        return Response(
+            {'message': f'{deleted_count} unused license(s) deleted successfully', 'deleted_count': deleted_count},
+            status=status.HTTP_200_OK
+        )

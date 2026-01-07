@@ -7,6 +7,8 @@ export default function Licenses() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [deletingUnused, setDeletingUnused] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const fetchLicenses = () => {
     setLoading(true)
@@ -30,6 +32,33 @@ export default function Licenses() {
       setError('Failed to create license')
     } finally {
       setCreating(false)
+    }
+  }
+
+  const handleDeleteUnused = async () => {
+    if (!confirm('Are you sure you want to delete all unused licenses?')) return
+    setDeletingUnused(true)
+    try {
+      const res = await licenseApi.deleteUnused()
+      fetchLicenses()
+      alert(`Deleted ${res.data.deleted_count} unused license(s)`)
+    } catch {
+      setError('Failed to delete unused licenses')
+    } finally {
+      setDeletingUnused(false)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this license?')) return
+    setDeletingId(id)
+    try {
+      await licenseApi.delete(id)
+      fetchLicenses()
+    } catch {
+      setError('Failed to delete license')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -71,21 +100,38 @@ export default function Licenses() {
           <h1 className="page-title">Licenses</h1>
           <p className="text-slate-400 mt-1">{licenses.length} total licenses</p>
         </div>
-        <button onClick={handleCreate} disabled={creating} className="btn-primary flex items-center gap-2">
-          {creating ? (
-            <>
-              <span className="loading-spinner" />
-              <span>Creating...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Generate License</span>
-            </>
-          )}
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleDeleteUnused} disabled={deletingUnused} className="btn-danger flex items-center gap-2">
+            {deletingUnused ? (
+              <>
+                <span className="loading-spinner" />
+                <span>Deleting...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Delete Unused</span>
+              </>
+            )}
+          </button>
+          <button onClick={handleCreate} disabled={creating} className="btn-primary flex items-center gap-2">
+            {creating ? (
+              <>
+                <span className="loading-spinner" />
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Generate License</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Error */}
@@ -153,15 +199,30 @@ export default function Licenses() {
                       })}
                     </td>
                     <td className="table-cell text-right">
-                      <Link
-                        to={`/licenses/${license.id}`}
-                        className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition-colors font-medium text-sm"
-                      >
-                        View Details
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
+                      <div className="flex items-center justify-end gap-3">
+                        <Link
+                          to={`/licenses/${license.id}`}
+                          className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition-colors font-medium text-sm"
+                        >
+                          View Details
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(license.id)}
+                          disabled={deletingId === license.id}
+                          className="inline-flex items-center gap-1.5 text-rose-400 hover:text-rose-300 transition-colors font-medium text-sm"
+                        >
+                          {deletingId === license.id ? (
+                            <span className="loading-spinner w-4 h-4" />
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
