@@ -101,7 +101,7 @@ class ActivateView(APIView):
             license=license_obj,
             device_id=device_id,
             fingerprint_hash=hash_fingerprint(fingerprint_data),
-            mac_address_hash=hash_fingerprint(data['mac_address'])
+            mac_address_hash=''
         )
 
         license_obj.status = License.Status.ACTIVE
