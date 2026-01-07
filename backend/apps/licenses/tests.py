@@ -42,18 +42,18 @@ class TestHashFingerprint:
 
 class TestGenerateDeviceId:
     def test_generate_device_id_format(self):
-        device_id = generate_device_id("cpu123", "disk456", "mb789", "AA:BB:CC:DD:EE:FF")
+        device_id = generate_device_id("cpu123", "disk456", "mb789")
         assert len(device_id) == 64
         assert all(c in '0123456789abcdef' for c in device_id)
 
     def test_generate_device_id_consistency(self):
-        id1 = generate_device_id("cpu", "disk", "mb", "mac")
-        id2 = generate_device_id("cpu", "disk", "mb", "mac")
+        id1 = generate_device_id("cpu", "disk", "mb")
+        id2 = generate_device_id("cpu", "disk", "mb")
         assert id1 == id2
 
     def test_generate_device_id_different_hardware(self):
-        id1 = generate_device_id("cpu1", "disk", "mb", "mac")
-        id2 = generate_device_id("cpu2", "disk", "mb", "mac")
+        id1 = generate_device_id("cpu1", "disk", "mb")
+        id2 = generate_device_id("cpu2", "disk", "mb")
         assert id1 != id2
 
 

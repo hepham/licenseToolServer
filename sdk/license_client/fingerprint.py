@@ -99,10 +99,11 @@ class DeviceFingerprint:
         """
         Get the unique device identifier.
         
-        This is a SHA-256 hash of all hardware identifiers combined.
+        This is a SHA-256 hash of hardware identifiers combined.
+        Note: mac_address is excluded as it can be unstable.
         """
         if self._device_id is None:
-            combined = f"{self.cpu_id}:{self.disk_serial}:{self.motherboard_id}:{self.mac_address}"
+            combined = f"{self.cpu_id}:{self.disk_serial}:{self.motherboard_id}"
             self._device_id = hashlib.sha256(combined.encode('utf-8')).hexdigest()
         return self._device_id
 

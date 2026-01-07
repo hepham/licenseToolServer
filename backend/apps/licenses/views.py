@@ -73,8 +73,7 @@ class ActivateView(APIView):
         device_id = generate_device_id(
             data['cpu_id'],
             data['disk_serial'],
-            data['motherboard_id'],
-            data['mac_address']
+            data['motherboard_id']
         )
 
         # Check if this device already has this license activated

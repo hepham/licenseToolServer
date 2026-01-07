@@ -31,7 +31,7 @@ class ActivationRequestSerializer(serializers.Serializer):
     cpu_id = serializers.CharField(max_length=255)
     disk_serial = serializers.CharField(max_length=255)
     motherboard_id = serializers.CharField(max_length=255)
-    mac_address = serializers.CharField(max_length=17)
+    mac_address = serializers.CharField(max_length=17, required=False, default="")
 
 
 class ActivationResponseSerializer(serializers.Serializer):

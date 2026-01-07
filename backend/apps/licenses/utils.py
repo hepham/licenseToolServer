@@ -33,12 +33,15 @@ def hash_fingerprint(fingerprint_data: str) -> str:
     return hashlib.sha256(fingerprint_data.encode('utf-8')).hexdigest()
 
 
-def generate_device_id(cpu_id: str, disk_serial: str, motherboard_id: str, mac_address: str) -> str:
+def generate_device_id(cpu_id: str, disk_serial: str, motherboard_id: str) -> str:
     """
     Generate a unique device ID from hardware components.
     Combines all identifiers and hashes them for privacy.
+    
+    Note: mac_address is excluded as it can be unstable (multiple adapters,
+    virtual interfaces, or changes between sessions).
     """
-    combined = f"{cpu_id}:{disk_serial}:{motherboard_id}:{mac_address}"
+    combined = f"{cpu_id}:{disk_serial}:{motherboard_id}"
     return hash_fingerprint(combined)
 
 
