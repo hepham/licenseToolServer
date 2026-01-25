@@ -3,6 +3,7 @@ set -e
 
 # Fix permissions on mounted volumes (runs as root initially)
 echo "Fixing volume permissions..."
+mkdir -p /app/keys
 chown -R appuser:appuser /app/staticfiles /app/keys 2>/dev/null || true
 
 # Switch to appuser for the rest of the script
