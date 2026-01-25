@@ -5,6 +5,7 @@ from .admin_views import (
     AdminLicenseListCreateView,
     AdminLicenseDetailView,
     AdminLicenseRevokeView,
+    AdminLicenseDeactivateView,
     AdminDeviceListView,
     AdminDeleteUnusedLicensesView,
 )
@@ -23,5 +24,6 @@ urlpatterns = [
     path('admin/licenses/unused/', AdminDeleteUnusedLicensesView.as_view(), name='admin-license-delete-unused'),
     path('admin/licenses/<int:id>/', AdminLicenseDetailView.as_view(), name='admin-license-detail'),
     path('admin/licenses/<int:id>/revoke/', AdminLicenseRevokeView.as_view(), name='admin-license-revoke'),
+    path('admin/licenses/<int:id>/deactivate/', AdminLicenseDeactivateView.as_view(), name='admin-license-deactivate'),
     path('admin/devices/', AdminDeviceListView.as_view(), name='admin-device-list'),
 ]

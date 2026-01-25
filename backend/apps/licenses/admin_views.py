@@ -109,6 +109,47 @@ class AdminLicenseRevokeView(APIView):
         )
 
 
+class AdminLicenseDeactivateView(APIView):
+    """
+    POST /api/v1/admin/licenses/{id}/deactivate - Deactivate a license (reset to INACTIVE)
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    @extend_schema(
+        tags=['Admin'],
+        summary='Deactivate a license',
+        description='Deactivate a license, removing device binding and setting status to INACTIVE.',
+        responses={
+            200: OpenApiResponse(description='License deactivated successfully'),
+            404: OpenApiResponse(description='License not found'),
+            400: OpenApiResponse(description='License is not active'),
+        }
+    )
+    def post(self, request, id):
+        try:
+            license_obj = License.objects.get(id=id)
+        except License.DoesNotExist:
+            return Response(
+                {'error': 'License not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if license_obj.status != License.Status.ACTIVE:
+            return Response(
+                {'error': 'License is not active'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        license_obj.devices.all().delete()
+        license_obj.status = License.Status.INACTIVE
+        license_obj.save()
+
+        return Response(
+            {'message': 'License deactivated successfully'},
+            status=status.HTTP_200_OK
+        )
+
+
 @extend_schema_view(
     list=extend_schema(
         tags=['Admin'],
